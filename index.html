@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey to the Fantasy World - Maze Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .watermark {
+            position: relative;
+            text-align: center;
+            color: #FFFFFF;
+            font-size: 0.75em;
+            margin-top: 20px;
+            padding: 10px;
+            font-weight: 500;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1100px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 50%;
+        }
+
+        .settings-icon:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.1);
+        }
+
+        .settings-icon::before {
+            content: '⋮';
+            font-size: 1.4em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .modal-content .input-group {
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .student-box {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .student-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            margin-top: 15px;
+        }
+
+        /* MAZE MAP STYLING */
+        .map-container {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 
+                inset 0 0 50px rgba(0,0,0,0.5),
+                0 10px 30px rgba(0,0,0,0.3);
+            border: 3px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .map-title {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 1.6em;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 1);
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .maze-wrapper {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .maze-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+            gap: 3px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .maze-cell {
+            aspect-ratio: 1;
+            position: relative;
+            transition: all 0.4s;
+            border-radius: 2px;
+        }
+
+        .maze-cell.wall {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 
+                inset 0 0 10px rgba(0,0,0,0.8),
+                0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .maze-cell.path {
+            background: linear-gradient(135deg, #485563 0%, #29323c 100%);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .maze-cell.path.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 
+                0 0 25px rgba(240, 147, 251, 0.9),
+                0 0 50px rgba(245, 87, 108, 0.6);
+            animation: glow 1.5s infinite;
+        }
+
+        .maze-cell.path.completed {
+            background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+            box-shadow: 0 0 20px rgba(11, 163, 96, 0.6);
+        }
+
+        @keyframes glow {
+            0%, 100% { 
+                box-shadow: 0 0 25px rgba(240, 147, 251, 0.9),
+                           0 0 50px rgba(245, 87, 108, 0.6);
+            }
+            50% { 
+                box-shadow: 0 0 35px rgba(240, 147, 251, 1),
+                           0 0 70px rgba(245, 87, 108, 0.9);
+            }
+        }
+
+        .maze-door {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+        }
+
+        .door-icon {
+            font-size: 1.6em;
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+            display: block;
+        }
+
+        .door-number {
+            font-size: 0.75em;
+            color: white;
+            font-weight: bold;
+            margin-top: 2px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .player-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            z-index: 20;
+            animation: bounce 1s infinite;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-8px); }
+        }
+
+        .maze-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9em;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .legend-box {
+            width: 25px;
+            height: 25px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .legend-box.wall {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        .legend-box.path {
+            background: linear-gradient(135deg, #485563 0%, #29323c 100%);
+        }
+
+        .legend-box.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .legend-box.completed {
+            background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+        }
+
+        .team-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .progress-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+        }
+
+        .maze-content {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .maze-content h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .maze-content h4 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .maze-content p, .maze-content ul {
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .maze-content ul {
+            margin-left: 20px;
+        }
+
+        .maze-content li {
+            margin-bottom: 10px;
+        }
+
+        .question-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid #667eea;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .question-box h4 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .option:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .option.wrong {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #4caf50;
+        }
+
+        .feedback.wrong {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f44336;
+        }
+
+        .completion-screen {
+            text-align: center;
+        }
+
+        .completion-screen h2 {
+            color: #4caf50;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+
+        .performance-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .badge-perfect {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .badge-excellent {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .badge-good {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .badge-fair {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .score-display h3 {
+            font-size: 3.5em;
+            margin: 10px 0;
+        }
+
+        .score-display p {
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .student-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .door-icon {
+                font-size: 1.2em;
+            }
+
+            .door-number {
+                font-size: 0.65em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings-icon" onclick="openSettings()" title="Pengaturan"></div>
+        
+        <div class="logo-container" id="logoContainer" style="display: none;">
+            <img src="" alt="Logo" class="logo" id="logoImg">
+        </div>
+        
+        <h1 id="mainTitle">🏰 Journey to the Fantasy World 🏰</h1>
+        <div class="subtitle" id="mainSubtitle">Narrative Text Learning Adventure</div>
+        
+        <!-- Settings Modal -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <h2>⚙️ Pengaturan Game</h2>
+                
+                <div class="input-group">
+                    <label>Judul Game:</label>
+                    <input type="text" id="settingTitle" placeholder="Journey to the Fantasy World">
+                </div>
+                
+                <div class="input-group">
+                    <label>Subtitle:</label>
+                    <input type="text" id="settingSubtitle" placeholder="Narrative Text Learning Adventure">
+                </div>
+                
+                <div class="input-group">
+                    <label>URL Logo (opsional):</label>
+                    <input type="text" id="settingLogo" placeholder="https://example.com/logo.png">
+                    <small style="color: #666;">Masukkan URL gambar logo Anda</small>
+                </div>
+                
+                <button class="btn" onclick="saveSettings()">💾 Simpan Pengaturan</button>
+                <button class="close-modal" onclick="closeSettings()">Tutup</button>
+            </div>
+        </div>
+        
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <p style="text-align: center; margin-bottom: 30px; font-size: 1.1em; color: #555;">
+                Selamat datang petualang! Masukkan identitas tim untuk memasuki labirin Narrative Text dengan 8 gerbang yang harus diselesaikan.
+            </p>
+            <div class="student-inputs">
+                <div class="student-box">
+                    <h3>👤 Siswa 1</h3>
+                    <div class="input-group">
+                        <label>Nama:</label>
+                        <input type="text" id="student1Name" placeholder="Masukkan nama">
+                    </div>
+                    <div class="input-group">
+                        <label>Kelas:</label>
+                        <input type="text" id="student1Class" placeholder="Contoh: 7A">
+                    </div>
+                </div>
+                <div class="student-box">
+                    <h3>👤 Siswa 2</h3>
+                    <div class="input-group">
+                        <label>Nama:</label>
+                        <input type="text" id="student2Name" placeholder="Masukkan nama">
+                    </div>
+                    <div class="input-group">
+                        <label>Kelas:</label>
+                        <input type="text" id="student2Class" placeholder="Contoh: 7A">
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="startGame()">🎮 Masuk ke Labirin</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="team-info">
+                <strong>🎭 Tim Petualang:</strong> <span id="teamDisplay"></span>
+            </div>
+            
+            <div class="progress-info">
+                <strong>📊 Progress:</strong> <span id="progressDisplay">Gerbang 0/8</span>
+            </div>
+            
+            <!-- MAZE MAP -->
+            <div class="map-container">
+                <div class="map-title">🗺️ PETA LABIRIN NARRATIVE TEXT</div>
+                <div class="maze-wrapper">
+                    <div class="maze-grid" id="mazeGrid"></div>
+                </div>
+                <div class="maze-legend">
+                    <div class="legend-item">
+                        <div class="legend-box wall"></div>
+                        <span>Dinding</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box path"></div>
+                        <span>Jalur</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box active"></div>
+                        <span>Lokasi Kamu</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box completed"></div>
+                        <span>Sudah Dilalui</span>
+                    </div>
+                    <div class="legend-item">
+                        <span>🧙 = Petualang</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mazeContent"></div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="completionScreen" class="screen">
+            <div class="completion-screen">
+                <h2>🎉 Selamat! Kalian Berhasil Menyelesaikan Semua Gerbang! 🎉</h2>
+                
+                <div id="performanceBadge" class="performance-badge"></div>
+                
+                <div class="score-display">
+                    <p style="font-size: 1.2em;">Skor Akhir Tim:</p>
+                    <h3 id="finalScore">0/8</h3>
+                    <p id="scorePercentage"></p>
+                </div>
+                <div class="team-info">
+                    <strong>🎭 Tim:</strong> <span id="finalTeamDisplay"></span>
+                </div>
+                <p style="margin: 20px 0; font-size: 1.1em; color: #555;">
+                    Kalian telah menyelesaikan perjalanan di labirin Narrative Text!
+                </p>
+                <button class="btn" onclick="generatePDF()">📄 Download Laporan PDF</button>
+                <button class="btn btn-secondary" onclick="resetGame()">🔄 Main Lagi</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="watermark">Created & Developed by D.D Candra</div>
+
+    <script>
+        // Maze layout - 9x11 grid
+        const mazeLayout = [
+            ['W', 'W', 'W', 'W', 'E', 'W', 'W', 'W', 'W'],
+            ['W', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'W'],
+            ['W', '1', 'W', 'W', 'W', 'W', 'W', 'P', 'W'],
+            ['W', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'W'],
+            ['W', 'P', 'W', 'W', '2', 'W', 'W', 'P', 'W'],
+            ['W', 'P', 'P', 'P', 'P', 'P', 'P', '3', 'W'],
+            ['W', 'W', 'W', 'W', 'P', 'W', 'W', 'W', 'W'],
+            ['W', '4', 'P', 'P', 'P', 'P', 'P', '5', 'W'],
+            ['W', 'P', 'W', 'W', '6', 'W', 'W', 'P', 'W'],
+            ['W', 'P', 'P', 'P', 'P', 'P', 'P', '7', 'W'],
+            ['W', 'W', 'W', 'W', 'X', 'W', 'W', 'W', 'W']
+        ];
+
+        const doorPositions = {
+            'E': { row: 0, col: 4, icon: '🚪', name: 'MASUK' },
+            '1': { row: 2, col: 1, icon: '📖', name: 'Gate 1' },
+            '2': { row: 4, col: 4, icon: '🎭', name: 'Gate 2' },
+            '3': { row: 5, col: 7, icon: '👥', name: 'Gate 3' },
+            '4': { row: 7, col: 1, icon: '🌟', name: 'Gate 4' },
+            '5': { row: 7, col: 7, icon: '⚔️', name: 'Gate 5' },
+            '6': { row: 8, col: 4, icon: '🏆', name: 'Gate 6' },
+            '7': { row: 9, col: 7, icon: '✨', name: 'Gate 7' },
+            'X': { row: 10, col: 4, icon: '🎉', name: 'KELUAR' }
+        };
+
+        const mazes = [
+            {
+                id: 1,
+                title: "Introduction to Narrative Text",
+                icon: "📖",
+                material: `<h4>What is Narrative Text?</h4>
+                <p>Narrative text is a type of text that tells a story. It can be a fictional story (like fairy tales, legends, fables) or a non-fictional story (like personal experiences or historical events).</p>
+                
+                <h4>Purpose of Narrative Text:</h4>
+                <ul>
+                    <li>To entertain readers or listeners</li>
+                    <li>To teach moral lessons</li>
+                    <li>To share experiences and emotions</li>
+                </ul>
+                
+                <h4>Generic Structure:</h4>
+                <ul>
+                    <li><strong>Orientation:</strong> Introduces the characters, setting (time and place), and situation</li>
+                    <li><strong>Complication:</strong> The problem or conflict arises</li>
+                    <li><strong>Resolution:</strong> The problem is solved</li>
+                    <li><strong>Re-orientation (optional):</strong> A concluding remark or moral lesson</li>
+                </ul>`,
+                question: "What is the main purpose of narrative text?",
+                options: [
+                    "To describe something in detail",
+                    "To entertain and teach moral lessons",
+                    "To explain how something works",
+                    "To persuade readers to do something"
+                ],
+                correct: 1
+            },
+            {
+                id: 2,
+                title: "Characters and Setting",
+                icon: "🎭",
+                material: `<h4>Characters in Narrative Text:</h4>
+                <p>Characters are the people or animals in the story. There are different types of characters:</p>
+                <ul>
+                    <li><strong>Protagonist:</strong> The main character (hero)</li>
+                    <li><strong>Antagonist:</strong> The character who opposes the main character (villain)</li>
+                    <li><strong>Supporting characters:</strong> Other characters who help tell the story</li>
+                </ul>
+                
+                <h4>Setting:</h4>
+                <p>Setting refers to when and where the story takes place. It includes:</p>
+                <ul>
+                    <li><strong>Time:</strong> Past, present, or future; specific time period</li>
+                    <li><strong>Place:</strong> Location where events happen (castle, forest, city, etc.)</li>
+                </ul>
+                
+                <p><strong>Example:</strong> "Once upon a time, in a faraway kingdom..." - This shows the time (past) and place (kingdom).</p>`,
+                question: "What do we call the main character in a narrative story?",
+                options: [
+                    "Antagonist",
+                    "Supporting character",
+                    "Protagonist",
+                    "Narrator"
+                ],
+                correct: 2
+            },
+            {
+                id: 3,
+                title: "Language Features - Past Tense",
+                icon: "👥",
+                material: `<h4>Past Tense in Narrative Text:</h4>
+                <p>Narrative texts usually use <strong>Simple Past Tense</strong> because they tell stories that happened in the past.</p>
+                
+                <h4>Examples:</h4>
+                <ul>
+                    <li>She <strong>walked</strong> through the forest. (walk → walked)</li>
+                    <li>The prince <strong>found</strong> a golden key. (find → found)</li>
+                    <li>They <strong>lived</strong> happily ever after. (live → lived)</li>
+                </ul>
+                
+                <h4>Formula:</h4>
+                <p><strong>Subject + Verb 2 (past form) + Object</strong></p>
+                
+                <h4>Common Past Tense Verbs:</h4>
+                <ul>
+                    <li>go → went</li>
+                    <li>see → saw</li>
+                    <li>eat → ate</li>
+                    <li>run → ran</li>
+                    <li>say → said</li>
+                </ul>`,
+                question: "Which sentence correctly uses past tense for narrative text?",
+                options: [
+                    "The princess walks to the castle",
+                    "The princess walked to the castle",
+                    "The princess will walk to the castle",
+                    "The princess is walking to the castle"
+                ],
+                correct: 1
+            },
+            {
+                id: 4,
+                title: "Language Features - Action Verbs",
+                icon: "🌟",
+                material: `<h4>Action Verbs in Narrative Text:</h4>
+                <p>Action verbs are words that show physical or mental actions. Narrative texts use many action verbs to make the story exciting and dynamic.</p>
+                
+                <h4>Types of Action Verbs:</h4>
+                <ul>
+                    <li><strong>Physical actions:</strong> run, jump, fight, swim, climb</li>
+                    <li><strong>Mental actions:</strong> think, believe, decide, realize, understand</li>
+                    <li><strong>Communication actions:</strong> said, shouted, whispered, asked, replied</li>
+                </ul>
+                
+                <h4>Examples in Stories:</h4>
+                <ul>
+                    <li>The hero <strong>fought</strong> the dragon bravely.</li>
+                    <li>She <strong>realized</strong> the truth about the mystery.</li>
+                    <li>"Help me!" he <strong>shouted</strong> loudly.</li>
+                </ul>`,
+                question: "Which of the following is an action verb?",
+                options: [
+                    "Beautiful",
+                    "Quickly",
+                    "Jumped",
+                    "Happy"
+                ],
+                correct: 2
+            },
+            {
+                id: 5,
+                title: "Language Features - Time Connectives",
+                icon: "⚔️",
+                material: `<h4>Time Connectives (Temporal Conjunctions):</h4>
+                <p>Time connectives are words that connect events in a story and show the order in which they happened.</p>
+                
+                <h4>Common Time Connectives:</h4>
+                <ul>
+                    <li><strong>Beginning:</strong> Once upon a time, Long ago, One day</li>
+                    <li><strong>Middle:</strong> Then, After that, Next, Suddenly, Meanwhile</li>
+                    <li><strong>End:</strong> Finally, At last, In the end, Eventually</li>
+                </ul>
+                
+                <h4>Example in a Story:</h4>
+                <p><strong>Once upon a time</strong>, there lived a kind princess. <strong>One day</strong>, she met a frog. <strong>Suddenly</strong>, the frog turned into a prince. <strong>Finally</strong>, they lived happily ever after.</p>`,
+                question: "Which word is a time connective that shows the ending of a story?",
+                options: [
+                    "Meanwhile",
+                    "Suddenly",
+                    "Finally",
+                    "After that"
+                ],
+                correct: 2
+            },
+            {
+                id: 6,
+                title: "Language Features - Direct Speech",
+                icon: "🏆",
+                material: `<h4>Direct Speech in Narrative Text:</h4>
+                <p>Direct speech shows the exact words that characters say. It makes stories more interesting and realistic.</p>
+                
+                <h4>How to Write Direct Speech:</h4>
+                <ul>
+                    <li>Use quotation marks (" ") around the spoken words</li>
+                    <li>Start with a capital letter</li>
+                    <li>Use a comma before the quotation if there's a reporting verb</li>
+                </ul>
+                
+                <h4>Examples:</h4>
+                <ul>
+                    <li>The queen said, "You must find the magic mirror."</li>
+                    <li>"I will save the kingdom!" shouted the brave knight.</li>
+                    <li>"Where are you going?" asked the witch.</li>
+                </ul>
+                
+                <h4>Reporting Verbs:</h4>
+                <p>said, asked, replied, shouted, whispered, cried, exclaimed</p>`,
+                question: "Which sentence correctly uses direct speech?",
+                options: [
+                    "The king said that he was happy",
+                    "The king said, You are brave",
+                    'The king said, "You are brave."',
+                    "The king said: you are brave"
+                ],
+                correct: 2
+            },
+            {
+                id: 7,
+                title: "Types of Narrative Text",
+                icon: "✨",
+                material: `<h4>Different Types of Narrative Text:</h4>
+                
+                <p><strong>1. Fairy Tale:</strong> Magical stories with fantasy elements (Cinderella, Snow White)</p>
+                
+                <p><strong>2. Fable:</strong> Short stories with animal characters that teach moral lessons (The Tortoise and the Hare)</p>
+                
+                <p><strong>3. Legend:</strong> Stories about heroes or historical events, often based on some truth (King Arthur, Malin Kundang)</p>
+                
+                <p><strong>4. Myth:</strong> Ancient stories that explain natural phenomena or cultural beliefs (Greek gods, Indonesian mythology)</p>
+                
+                <p><strong>5. Folk Tale:</strong> Traditional stories passed down through generations</p>
+                
+                <p><strong>6. Science Fiction:</strong> Stories about future technology, space, or scientific concepts</p>
+                
+                <p><strong>7. Mystery:</strong> Stories involving crimes or puzzles to solve</p>`,
+                question: "Which type of narrative text usually features animal characters teaching moral lessons?",
+                options: [
+                    "Legend",
+                    "Fable",
+                    "Myth",
+                    "Science Fiction"
+                ],
+                correct: 1
+            },
+            {
+                id: 8,
+                title: "Writing Your Own Narrative",
+                icon: "🎓",
+                material: `<h4>Steps to Write a Good Narrative Text:</h4>
+                
+                <p><strong>Step 1: Plan Your Story</strong></p>
+                <ul>
+                    <li>Decide on characters, setting, and plot</li>
+                    <li>Think about the problem and solution</li>
+                </ul>
+                
+                <p><strong>Step 2: Write the Orientation</strong></p>
+                <ul>
+                    <li>Introduce WHO (characters), WHERE (place), WHEN (time)</li>
+                    <li>Example: "Once upon a time, in a dark forest, lived a clever fox."</li>
+                </ul>
+                
+                <p><strong>Step 3: Create the Complication</strong></p>
+                <ul>
+                    <li>Introduce the problem or conflict</li>
+                    <li>Make it interesting and engaging</li>
+                </ul>
+                
+                <p><strong>Step 4: Write the Resolution</strong></p>
+                <ul>
+                    <li>Show how the problem is solved</li>
+                    <li>Give a satisfying ending</li>
+                </ul>
+                
+                <p><strong>Step 5: Add Details</strong></p>
+                <ul>
+                    <li>Use descriptive language</li>
+                    <li>Include dialogue</li>
+                    <li>Use time connectives</li>
+                </ul>`,
+                question: "What should you include in the orientation part of a narrative text?",
+                options: [
+                    "The solution to the problem",
+                    "The moral of the story",
+                    "Characters, setting (time and place)",
+                    "The climax of the story"
+                ],
+                correct: 2
+            }
+        ];
+
+        let currentMaze = 0;
+        let score = 0;
+        let studentData = {};
+        let playerPosition = { row: 0, col: 4 };
+        let gameSettings = {
+            title: "🏰 Journey to the Fantasy World 🏰",
+            subtitle: "Narrative Text Learning Adventure",
+            logo: ""
+        };
+
+        // Settings Functions
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+            document.getElementById('settingTitle').value = gameSettings.title;
+            document.getElementById('settingSubtitle').value = gameSettings.subtitle;
+            document.getElementById('settingLogo').value = gameSettings.logo;
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function saveSettings() {
+            gameSettings.title = document.getElementById('settingTitle').value || gameSettings.title;
+            gameSettings.subtitle = document.getElementById('settingSubtitle').value || gameSettings.subtitle;
+            gameSettings.logo = document.getElementById('settingLogo').value;
+            
+            document.getElementById('mainTitle').textContent = gameSettings.title;
+            document.getElementById('mainSubtitle').textContent = gameSettings.subtitle;
+            
+            if (gameSettings.logo) {
+                document.getElementById('logoContainer').style.display = 'block';
+                document.getElementById('logoImg').src = gameSettings.logo;
+            } else {
+                document.getElementById('logoContainer').style.display = 'none';
+            }
+            
+            closeSettings();
+            alert('✅ Pengaturan berhasil disimpan!');
+        }
+
+        function createMazeGrid() {
+            const grid = document.getElementById('mazeGrid');
+            grid.innerHTML = '';
+
+            mazeLayout.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'maze-cell';
+                    cellDiv.dataset.row = rowIndex;
+                    cellDiv.dataset.col = colIndex;
+
+                    if (cell === 'W') {
+                        cellDiv.classList.add('wall');
+                    } else {
+                        cellDiv.classList.add('path');
+                        
+                        if (doorPositions[cell]) {
+                            const doorDiv = document.createElement('div');
+                            doorDiv.className = 'maze-door';
+                            doorDiv.innerHTML = `
+                                <span class="door-icon">${doorPositions[cell].icon}</span>
+                                ${cell !== 'E' && cell !== 'X' ? `<span class="door-number">${cell}</span>` : ''}
+                            `;
+                            cellDiv.appendChild(doorDiv);
+                        }
+                    }
+
+                    grid.appendChild(cellDiv);
+                });
+            });
+
+            updatePlayerPosition();
+        }
+
+        function updatePlayerPosition() {
+            document.querySelectorAll('.player-icon').forEach(p => p.remove());
+            document.querySelectorAll('.maze-cell.path').forEach(c => {
+                c.classList.remove('active');
+            });
+
+            const currentCell = document.querySelector(
+                `.maze-cell[data-row="${playerPosition.row}"][data-col="${playerPosition.col}"]`
+            );
+            
+            if (currentCell) {
+                currentCell.classList.add('active');
+                const playerIcon = document.createElement('div');
+                playerIcon.className = 'player-icon';
+                playerIcon.textContent = '🧙';
+                currentCell.appendChild(playerIcon);
+            }
+        }
+
+        function markPathCompleted(doorNumber) {
+            const pathCells = document.querySelectorAll('.maze-cell.path');
+            pathCells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                
+                if (doorNumber >= 1 && row < playerPosition.row) {
+                    cell.classList.add('completed');
+                }
+            });
+        }
+
+        function updateProgress() {
+            document.getElementById('progressDisplay').textContent = `Gerbang ${score}/8`;
+        }
+
+        function startGame() {
+            const s1Name = document.getElementById('student1Name').value.trim();
+            const s1Class = document.getElementById('student1Class').value.trim();
+            const s2Name = document.getElementById('student2Name').value.trim();
+            const s2Class = document.getElementById('student2Class').value.trim();
+
+            if (!s1Name || !s1Class || !s2Name || !s2Class) {
+                alert('Mohon lengkapi semua data siswa!');
+                return;
+            }
+
+            studentData = {
+                student1: { name: s1Name, class: s1Class },
+                student2: { name: s2Name, class: s2Class },
+                startTime: new Date(),
+                answers: []
+            };
+
+            const teamDisplay = `${s1Name} & ${s2Name} (${s1Class})`;
+            document.getElementById('teamDisplay').textContent = teamDisplay;
+
+            showScreen('gameScreen');
+            createMazeGrid();
+            updateProgress();
+            loadMaze(0);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function loadMaze(index) {
+            currentMaze = index;
+            const maze = mazes[index];
+            
+            const doorKey = String(index + 1);
+            if (doorPositions[doorKey]) {
+                playerPosition = { 
+                    row: doorPositions[doorKey].row, 
+                    col: doorPositions[doorKey].col 
+                };
+                updatePlayerPosition();
+            }
+
+            const content = `
+                <div class="maze-content">
+                    <h3>${maze.icon} Gerbang ${maze.id}: ${maze.title}</h3>
+                    ${maze.material}
+                </div>
+                <div class="question-box">
+                    <h4>❓ Pertanyaan Gerbang ${maze.id}:</h4>
+                    <p style="margin-bottom: 15px; font-style: italic; font-size: 1.1em;">${maze.question}</p>
+                    <div class="options" id="options">
+                        ${maze.options.map((opt, i) => `
+                            <div class="option" onclick="selectAnswer(${i})">${opt}</div>
+                        `).join('')}
+                    </div>
+                    <div id="feedback"></div>
+                </div>
+                <button class="btn" id="submitBtn" onclick="submitAnswer()" style="margin-top: 20px;" disabled>🔑 Buka Gerbang</button>
+            `;
+
+            document.getElementById('mazeContent').innerHTML = content;
+        }
+
+        let selectedAnswer = null;
+
+        function selectAnswer(index) {
+            selectedAnswer = index;
+            const options = document.querySelectorAll('.option');
+            if (options.length === 0) return;
+            
+            options.forEach((opt, i) => {
+                if (opt && opt.classList) {
+                    opt.classList.remove('selected');
+                    if (i === index) opt.classList.add('selected');
+                }
+            });
+            
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null) return;
+
+            const maze = mazes[currentMaze];
+            const isCorrect = selectedAnswer === maze.correct;
+            const options = document.querySelectorAll('.option');
+            
+            if (options.length === 0) return;
+            
+            options.forEach((opt, i) => {
+                if (opt) {
+                    opt.onclick = null;
+                    if (isCorrect) {
+                        // Jika benar, tampilkan semua jawaban dengan warna
+                        if (i === maze.correct) {
+                            opt.classList.add('correct');
+                        }
+                    } else {
+                        // Jika salah, hanya tandai jawaban yang dipilih dengan merah
+                        // JANGAN tampilkan jawaban benar
+                        if (i === selectedAnswer) {
+                            opt.classList.add('wrong');
+                        }
+                    }
+                }
+            });
+
+            studentData.answers.push({
+                gate: currentMaze + 1,
+                question: maze.question,
+                userAnswer: maze.options[selectedAnswer],
+                correctAnswer: maze.options[maze.correct],
+                isCorrect: isCorrect
+            });
+
+            const feedbackContainer = document.getElementById('feedback');
+            if (!feedbackContainer) return;
+            
+            const feedback = feedbackContainer;
+            if (isCorrect) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Gerbang Terbuka! Jawaban benar! Kalian boleh melanjutkan perjalanan!';
+                score++;
+                updateProgress();
+                markPathCompleted(currentMaze + 1);
+            } else {
+                feedback.className = 'feedback wrong';
+                feedback.textContent = '❌ Jawaban Salah! Kalian tetap bisa melanjutkan ke gerbang berikutnya.';
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (!submitBtn) return;
+            
+            submitBtn.textContent = currentMaze < mazes.length - 1 ? '➡️ Lanjut ke Gerbang Berikutnya' : '🏁 Selesaikan Petualangan';
+            submitBtn.onclick = () => {
+                if (currentMaze < mazes.length - 1) {
+                    selectedAnswer = null;
+                    loadMaze(currentMaze + 1);
+                } else {
+                    showCompletion();
+                }
+            };
+            submitBtn.disabled = false;
+        }
+
+        function showCompletion() {
+            playerPosition = { row: 10, col: 4 };
+            updatePlayerPosition();
+            markPathCompleted(9);
+            
+            studentData.endTime = new Date();
+            
+            const teamDisplay = `${studentData.student1.name} & ${studentData.student2.name} (${studentData.student1.class})`;
+            document.getElementById('finalTeamDisplay').textContent = teamDisplay;
+            document.getElementById('finalScore').textContent = `${score}/${mazes.length}`;
+            
+            // Calculate performance badge
+            const percentage = (score / mazes.length) * 100;
+            let badgeHTML = '';
+            let badgeClass = '';
+            let badgeText = '';
+            
+            if (percentage === 100) {
+                badgeClass = 'badge-perfect';
+                badgeText = '🏆 SEMPURNA!';
+            } else if (percentage >= 75) {
+                badgeClass = 'badge-excellent';
+                badgeText = '⭐ SANGAT BAIK!';
+            } else if (percentage >= 50) {
+                badgeClass = 'badge-good';
+                badgeText = '👍 BAIK!';
+            } else {
+                badgeClass = 'badge-fair';
+                badgeText = '💪 PERLU BELAJAR LAGI!';
+            }
+            
+            document.getElementById('performanceBadge').className = `performance-badge ${badgeClass}`;
+            document.getElementById('performanceBadge').textContent = badgeText;
+            
+            setTimeout(() => {
+                showScreen('completionScreen');
+            }, 2000);
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header/Kop
+            doc.setFillColor(102, 126, 234);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('LAPORAN HASIL PEMBELAJARAN', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text(gameSettings.title.replace(/🏰/g, ''), 105, 25, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.text(gameSettings.subtitle, 105, 32, { align: 'center' });
+            
+            // Reset color
+            doc.setTextColor(0, 0, 0);
+            
+            // Data Tim
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('DATA TIM PEMBELAJARAN', 20, 50);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(11);
+            doc.text(`Siswa 1: ${studentData.student1.name}`, 20, 58);
+            doc.text(`Kelas: ${studentData.student1.class}`, 20, 64);
+            doc.text(`Siswa 2: ${studentData.student2.name}`, 20, 72);
+            doc.text(`Kelas: ${studentData.student2.class}`, 20, 78);
+            
+            const duration = Math.floor((studentData.endTime - studentData.startTime) / 60000);
+            doc.text(`Waktu Pengerjaan: ${duration} menit`, 20, 86);
+            doc.text(`Tanggal: ${studentData.endTime.toLocaleDateString('id-ID')}`, 20, 92);
+            
+            // Skor
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(14);
+            doc.text('HASIL SKOR', 20, 105);
+            
+            doc.setFontSize(12);
+            const percentage = Math.round((score/mazes.length)*100);
+            doc.setTextColor(102, 126, 234);
+            doc.text(`Total Skor: ${score}/${mazes.length} Gerbang (${percentage}%)`, 20, 113);
+            
+            // Performance badge
+            let predikat = '';
+            if (percentage === 100) predikat = 'SEMPURNA';
+            else if (percentage >= 75) predikat = 'SANGAT BAIK';
+            else if (percentage >= 50) predikat = 'BAIK';
+            else predikat = 'PERLU BELAJAR LAGI';
+            
+            doc.text(`Predikat: ${predikat}`, 20, 120);
+            
+            const correctCount = score;
+            const wrongCount = mazes.length - score;
+            doc.setTextColor(0, 128, 0);
+            doc.text(`Jawaban Benar: ${correctCount}`, 20, 127);
+            doc.setTextColor(255, 0, 0);
+            doc.text(`Jawaban Salah: ${wrongCount}`, 20, 134);
+            
+            // Detail Jawaban
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'bold');
+            doc.text('DETAIL JAWABAN', 20, 147);
+            
+            let yPos = 155;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            
+            studentData.answers.forEach((answer, index) => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                doc.setFont(undefined, 'bold');
+                doc.text(`Gerbang ${answer.gate}:`, 20, yPos);
+                yPos += 6;
+                
+                doc.setFont(undefined, 'normal');
+                const questionLines = doc.splitTextToSize(answer.question, 170);
+                doc.text(questionLines, 20, yPos);
+                yPos += questionLines.length * 5;
+                
+                if (answer.isCorrect) {
+                    doc.setTextColor(0, 128, 0);
+                    doc.text(`✓ Jawaban: ${answer.userAnswer}`, 20, yPos);
+                } else {
+                    doc.setTextColor(255, 0, 0);
+                    doc.text(`✗ Jawaban Anda: ${answer.userAnswer}`, 20, yPos);
+                    yPos += 5;
+                    doc.setTextColor(0, 128, 0);
+                    doc.text(`✓ Jawaban Benar: ${answer.correctAnswer}`, 20, yPos);
+                }
+                
+                doc.setTextColor(0, 0, 0);
+                yPos += 10;
+            });
+            
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(`Halaman ${i} dari ${pageCount}`, 105, 290, { align: 'center' });
+                doc.text('Created & Developed by D.D Candra', 105, 295, { align: 'center' });
+            }
+            
+            // Save PDF
+            const fileName = `Laporan_${studentData.student1.name}_${studentData.student2.name}_${Date.now()}.pdf`;
+            doc.save(fileName);
+        }
+
+        function resetGame() {
+            currentMaze = 0;
+            score = 0;
+            selectedAnswer = null;
+            playerPosition = { row: 0, col: 4 };
+            
+            document.getElementById('student1Name').value = '';
+            document.getElementById('student1Class').value = '';
+            document.getElementById('student2Name').value = '';
+            document.getElementById('student2Class').value = '';
+            showScreen('loginScreen');
+        }
+
+        // Load settings from localStorage if available
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedSettings = localStorage.getItem('gameSettings');
+            if (savedSettings) {
+                try {
+                    gameSettings = JSON.parse(savedSettings);
+                    document.getElementById('mainTitle').textContent = gameSettings.title;
+                    document.getElementById('mainSubtitle').textContent = gameSettings.subtitle;
+                    
+                    if (gameSettings.logo) {
+                        document.getElementById('logoContainer').style.display = 'block';
+                        document.getElementById('logoImg').src = gameSettings.logo;
+                    }
+                } catch (e) {
+                    console.log('No saved settings');
+                }
+            }
+        });
+
+        // Save settings to localStorage
+        function saveSettings() {
+            gameSettings.title = document.getElementById('settingTitle').value || gameSettings.title;
+            gameSettings.subtitle = document.getElementById('settingSubtitle').value || gameSettings.subtitle;
+            gameSettings.logo = document.getElementById('settingLogo').value;
+            
+            document.getElementById('mainTitle').textContent = gameSettings.title;
+            document.getElementById('mainSubtitle').textContent = gameSettings.subtitle;
+            
+            if (gameSettings.logo) {
+                document.getElementById('logoContainer').style.display = 'block';
+                document.getElementById('logoImg').src = gameSettings.logo;
+            } else {
+                document.getElementById('logoContainer').style.display = 'none';
+            }
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('gameSettings', JSON.stringify(gameSettings));
+            } catch (e) {
+                console.log('Cannot save settings');
+            }
+            
+            closeSettings();
+            alert('✅ Pengaturan berhasil disimpan!');
+        }
+
+        // Prevent form submission on Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+
+        // Close modal when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('settingsModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeSettings();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
