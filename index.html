@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Journey to the Fantasy World - Maze Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -21,6 +21,8 @@
             align-items: center;
             padding: 20px;
             position: relative;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         .watermark {
@@ -41,6 +43,7 @@
             width: 100%;
             padding: 40px;
             position: relative;
+            box-sizing: border-box;
         }
 
         .settings-icon {
@@ -1264,6 +1267,9 @@
             const teamDisplay = `${s1Name} & ${s2Name} (${s1Class})`;
             document.getElementById('teamDisplay').textContent = teamDisplay;
 
+            // Save game state to sessionStorage
+            saveGameState();
+
             showScreen('gameScreen');
             createMazeGrid();
             updateProgress();
@@ -1287,6 +1293,9 @@
                 };
                 updatePlayerPosition();
             }
+
+            // Save game state
+            saveGameState();
 
             const content = `
                 <div class="maze-content">
@@ -1557,6 +1566,13 @@
             selectedAnswer = null;
             playerPosition = { row: 0, col: 4 };
             
+            // Clear saved game state
+            try {
+                sessionStorage.removeItem('gameState');
+            } catch (e) {
+                console.log('Cannot clear session');
+            }
+            
             document.getElementById('student1Name').value = '';
             document.getElementById('student1Class').value = '';
             document.getElementById('student2Name').value = '';
@@ -1564,21 +1580,72 @@
             showScreen('loginScreen');
         }
 
+        // Save game state to sessionStorage
+        function saveGameState() {
+            try {
+                const gameState = {
+                    currentMaze: currentMaze,
+                    score: score,
+                    studentData: studentData,
+                    playerPosition: playerPosition
+                };
+                sessionStorage.setItem('gameState', JSON.stringify(gameState));
+            } catch (e) {
+                console.log('Cannot save game state');
+            }
+        }
+
+        // Load game state from sessionStorage
+        function loadGameState() {
+            try {
+                const savedState = sessionStorage.getItem('gameState');
+                if (savedState) {
+                    const gameState = JSON.parse(savedState);
+                    
+                    // Restore game state
+                    currentMaze = gameState.currentMaze;
+                    score = gameState.score;
+                    studentData = gameState.studentData;
+                    playerPosition = gameState.playerPosition;
+                    
+                    // Restore UI
+                    const teamDisplay = `${studentData.student1.name} & ${studentData.student2.name} (${studentData.student1.class})`;
+                    document.getElementById('teamDisplay').textContent = teamDisplay;
+                    
+                    showScreen('gameScreen');
+                    createMazeGrid();
+                    updateProgress();
+                    loadMaze(currentMaze);
+                    
+                    return true;
+                }
+            } catch (e) {
+                console.log('Cannot load game state');
+            }
+            return false;
+        }
+
         // Load settings from localStorage if available
         window.addEventListener('DOMContentLoaded', function() {
-            const savedSettings = localStorage.getItem('gameSettings');
-            if (savedSettings) {
-                try {
-                    gameSettings = JSON.parse(savedSettings);
-                    document.getElementById('mainTitle').textContent = gameSettings.title;
-                    document.getElementById('mainSubtitle').textContent = gameSettings.subtitle;
-                    
-                    if (gameSettings.logo) {
-                        document.getElementById('logoContainer').style.display = 'block';
-                        document.getElementById('logoImg').src = gameSettings.logo;
+            // Try to restore game state first
+            const stateRestored = loadGameState();
+            
+            if (!stateRestored) {
+                // If no game state, load settings
+                const savedSettings = localStorage.getItem('gameSettings');
+                if (savedSettings) {
+                    try {
+                        gameSettings = JSON.parse(savedSettings);
+                        document.getElementById('mainTitle').textContent = gameSettings.title;
+                        document.getElementById('mainSubtitle').textContent = gameSettings.subtitle;
+                        
+                        if (gameSettings.logo) {
+                            document.getElementById('logoContainer').style.display = 'block';
+                            document.getElementById('logoImg').src = gameSettings.logo;
+                        }
+                    } catch (e) {
+                        console.log('No saved settings');
                     }
-                } catch (e) {
-                    console.log('No saved settings');
                 }
             }
         });
