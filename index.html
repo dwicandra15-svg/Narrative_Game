@@ -610,7 +610,14 @@
             }
 
             .container {
-                padding: 20px 15px;
+                padding: 15px 10px;
+                margin: 0;
+                border-radius: 15px;
+                max-width: 100%;
+            }
+
+            body {
+                padding: 5px;
             }
 
             .door-icon {
@@ -622,11 +629,12 @@
             }
 
             .map-container {
-                padding: 20px 15px;
+                padding: 15px 10px;
+                border-radius: 15px;
             }
 
             .map-title {
-                font-size: 1.2em;
+                font-size: 1.1em;
                 margin-bottom: 15px;
             }
 
@@ -636,83 +644,124 @@
             }
 
             .maze-legend {
-                gap: 10px;
+                gap: 8px;
                 margin-top: 15px;
             }
 
             .legend-item {
-                font-size: 0.75em;
-                padding: 5px 10px;
+                font-size: 0.7em;
+                padding: 5px 8px;
             }
 
             .legend-box {
-                width: 18px;
-                height: 18px;
+                width: 16px;
+                height: 16px;
             }
 
             .team-info, .progress-info {
-                font-size: 0.9em;
-                padding: 12px;
+                font-size: 0.85em;
+                padding: 10px;
             }
 
             .maze-content {
-                padding: 20px 15px;
+                padding: 15px 10px;
             }
 
             .maze-content h3 {
-                font-size: 1.2em;
+                font-size: 1.1em;
+                margin-bottom: 15px;
             }
 
             .maze-content h4 {
-                font-size: 1em;
+                font-size: 0.95em;
+                margin-top: 15px;
             }
 
             .maze-content p, .maze-content ul {
-                font-size: 0.9em;
+                font-size: 0.85em;
+                line-height: 1.6;
+            }
+
+            .maze-content li {
+                margin-bottom: 8px;
             }
 
             .question-box {
-                padding: 15px;
+                padding: 12px 10px;
             }
 
             .question-box h4 {
-                font-size: 1em;
+                font-size: 0.95em;
+                margin-bottom: 12px;
             }
 
-            .option {
-                padding: 12px;
+            .question-box p {
                 font-size: 0.9em;
             }
 
+            .option {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+
             .btn {
-                padding: 12px 30px;
-                font-size: 1em;
+                padding: 12px 25px;
+                font-size: 0.95em;
             }
 
             .score-display {
-                padding: 25px;
+                padding: 20px;
             }
 
             .score-display h3 {
-                font-size: 2.5em;
+                font-size: 2.2em;
+            }
+
+            .score-display p {
+                font-size: 1em;
             }
 
             .completion-screen h2 {
-                font-size: 1.5em;
+                font-size: 1.3em;
             }
 
             .performance-badge {
-                font-size: 1em;
-                padding: 8px 20px;
+                font-size: 0.9em;
+                padding: 8px 15px;
             }
 
             .watermark {
-                font-size: 0.65em;
-                padding: 5px;
+                font-size: 0.6em;
+                padding: 8px 5px;
+                margin-top: 10px;
             }
 
-            body {
+            .settings-icon {
+                width: 30px;
+                height: 30px;
+                top: 10px;
+                right: 10px;
+            }
+
+            .settings-icon::before {
+                font-size: 1.2em;
+            }
+
+            .student-box {
+                padding: 15px 10px;
+            }
+
+            .input-group {
+                margin-bottom: 15px;
+            }
+
+            .input-group label {
+                font-size: 1em;
+            }
+
+            .input-group input {
                 padding: 10px;
+                font-size: 0.9em;
             }
         }
     </style>
@@ -784,6 +833,8 @@
                 </div>
             </div>
             <button class="btn" onclick="startGame()">🎮 Masuk ke Labirin</button>
+            
+            <div class="watermark">Created & Developed by D.D Candra</div>
         </div>
 
         <!-- Game Screen -->
@@ -826,6 +877,8 @@
             </div>
 
             <div id="mazeContent"></div>
+            
+            <div class="watermark">Created & Developed by D.D Candra</div>
         </div>
 
         <!-- Completion Screen -->
@@ -849,10 +902,10 @@
                 <button class="btn" onclick="generatePDF()">📄 Download Laporan PDF</button>
                 <button class="btn btn-secondary" onclick="resetGame()">🔄 Main Lagi</button>
             </div>
+            
+            <div class="watermark">Created & Developed by D.D Candra</div>
         </div>
     </div>
-    
-    <div class="watermark">Created & Developed by D.D Candra</div>
 
     <script>
         // Maze layout - 9x11 grid
